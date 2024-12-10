@@ -1,7 +1,8 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, Matches } from 'class-validator';
 
 export class QueryExpenseDto {
   @IsOptional()
   @IsString()
-  month?: string; // 예: '2024-12'
+  @Matches(/^\d{4}-\d{2}$/, { message: 'month must be in YYYY-MM format' })
+  month?: string;
 }
