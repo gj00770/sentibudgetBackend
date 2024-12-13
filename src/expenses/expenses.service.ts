@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
-import { Expense } from './entities/expense.entity';
-import { CreateExpenseDto } from './dto/create-expense.dto';
+import { Repository } from 'typeorm';
+import { Expense } from './entities/expenses.entity';
 
 @Injectable()
 export class ExpensesService {
@@ -11,20 +10,17 @@ export class ExpensesService {
     private readonly expenseRepository: Repository<Expense>,
   ) {}
 
-  async create(createExpenseDto: CreateExpenseDto): Promise<Expense> {
-    const expense = this.expenseRepository.create(createExpenseDto);
+  async create(createExpenseDto, userId: number): Promise<Expense> {
+    const expense = this.expenseRepository.create({
+      user: { id: userId, ...createExpenseDto }, // 관계 객체를 설정
+    });
     return this.expenseRepository.save(expense);
   }
 
-  async findMonthlyExpenses(month: string): Promise<Expense[]> {
-    const startDate = new Date(`${month}-01`);
-    const endDate = new Date(startDate);
-    endDate.setMonth(startDate.getMonth() + 1);
-
+  async findByUser(userId: number): Promise<Expense[]> {
     return this.expenseRepository.find({
-      where: {
-        createdAt: Between(startDate, endDate),
-      },
+      where: { user: { id: userId } },
+      relations: ['user'], // 관계 데이터를 명시적으로 로드
     });
   }
 }

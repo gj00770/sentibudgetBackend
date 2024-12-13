@@ -1,23 +1,22 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
-import { QueryExpenseDto } from './dto/query-expense.dto';
 
 @Controller('expenses')
+@UseGuards(JwtAuthGuard) // JwtAuthGuard를 적용
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
   @Post()
-  async create(@Body() createExpenseDto: CreateExpenseDto) {
-    return this.expensesService.create(createExpenseDto);
+  async create(@Body() createExpenseDto: CreateExpenseDto, @Req() req) {
+    const userId = req.user.userId;
+    return this.expensesService.create(createExpenseDto, userId);
   }
 
   @Get()
-  async findMonthly(@Query() query: QueryExpenseDto) {
-    const { month } = query;
-    if (!month) {
-      throw new Error('Month parameter is required (e.g., 2024-12)');
-    }
-    return this.expensesService.findMonthlyExpenses(month);
+  async findByUser(@Req() req) {
+    const userId = req.user.userId;
+    return this.expensesService.findByUser(userId);
   }
 }
